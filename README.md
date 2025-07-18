@@ -19,7 +19,7 @@ A modern, interactive platform to help you prepare for technical and behavioral 
 ### Installation
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/YOUR_USERNAME/AI-Powered-Interview-Practice-Platform.git
+   git clone https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform.git
    cd AI-Powered-Interview-Practice-Platform
    ```
 2. **Install dependencies:**
