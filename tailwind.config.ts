@@ -82,7 +82,12 @@ export default {
 					positive: 'hsl(var(--feedback-positive))',
 					neutral: 'hsl(var(--feedback-neutral))',
 					negative: 'hsl(var(--feedback-negative))'
-				}
+				},
+				primary: '#1E3A4F', // PREPZA navy blue
+				accent: '#16A3A3', // PREPZA teal
+				'primary-dark': '#162635',
+				'accent-light': '#12B3B3',
+				background: '#F8FAFC',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

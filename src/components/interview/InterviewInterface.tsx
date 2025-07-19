@@ -4,6 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
 import { AIAvatar } from './AIAvatar';
 import { InterviewSession } from '@/types/interview';
 import { Clock, Mic, MicOff, Send, SkipForward } from 'lucide-react';
@@ -28,6 +36,8 @@ export const InterviewInterface = ({
   const [answer, setAnswer] = useState('');
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showSkipDialog, setShowSkipDialog] = useState(false);
 
   const currentQuestion = session.questions[session.currentQuestionIndex];
   const progress = ((session.currentQuestionIndex + 1) / session.questions.length) * 100;
@@ -72,6 +82,24 @@ export const InterviewInterface = ({
       default:
         return 'bg-muted text-muted-foreground';
     }
+  };
+
+  const handleEndInterview = () => {
+    setShowExitDialog(true);
+  };
+
+  const confirmEndInterview = () => {
+    setShowExitDialog(false);
+    onEndInterview();
+  };
+
+  const handleSkipQuestion = () => {
+    setShowSkipDialog(true);
+  };
+
+  const confirmSkipQuestion = () => {
+    setShowSkipDialog(false);
+    onSubmitAnswer('Skipped');
   };
 
   if (!currentQuestion) {
@@ -198,7 +226,7 @@ export const InterviewInterface = ({
                 {/* Skip Button */}
                 <Button
                   variant="outline"
-                  onClick={() => onSubmitAnswer('Skipped')}
+                  onClick={handleSkipQuestion}
                   disabled={isAvatarSpeaking}
                 >
                   <SkipForward className="w-4 h-4 mr-2" />
@@ -220,7 +248,7 @@ export const InterviewInterface = ({
                 </div>
                 <Button 
                   variant="destructive" 
-                  onClick={onEndInterview}
+                  onClick={handleEndInterview}
                   disabled={isAvatarSpeaking}
                 >
                   End Interview
@@ -231,6 +259,46 @@ export const InterviewInterface = ({
 
         </div>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to exit the interview?</DialogTitle>
+            <DialogDescription>
+              If you exit now, you'll lose your progress on the current question. Your previous answers and feedback will be saved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExitDialog(false)}>
+              Continue Interview
+            </Button>
+            <Button variant="destructive" onClick={confirmEndInterview}>
+              Exit Interview
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Skip Confirmation Dialog */}
+      <Dialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to skip this question?</DialogTitle>
+            <DialogDescription>
+              Skipping this question will move you to the next one. You won't be able to go back to answer it later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSkipDialog(false)}>
+              Continue Answering
+            </Button>
+            <Button variant="destructive" onClick={confirmSkipQuestion}>
+              Skip Question
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -204,8 +204,10 @@ export const useInterview = () => {
       currentSession: null,
       isRecording: false,
       isAvatarSpeaking: false,
-      currentPhase: 'topic-selection'
-    });
+      currentPhase: 'topic-selection',
+      // Add a unique key to force re-render
+      _resetKey: Date.now(),
+    } as any);
   }, []);
 
   return {
