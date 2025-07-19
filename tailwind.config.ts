@@ -25,8 +25,8 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#18404a', // deep teal/blue-green from logo text
+					dark: '#102c33',    // even darker for hover, etc.
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -41,8 +41,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: '#13b5b1', // lighter teal/cyan from logo head
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -83,11 +82,6 @@ export default {
 					neutral: 'hsl(var(--feedback-neutral))',
 					negative: 'hsl(var(--feedback-negative))'
 				},
-				primary: '#1E3A4F', // PREPZA navy blue
-				accent: '#16A3A3', // PREPZA teal
-				'primary-dark': '#162635',
-				'accent-light': '#12B3B3',
-				background: '#F8FAFC',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
