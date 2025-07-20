@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom'; // Import Link for routing
 import { TopicSelection } from '@/components/interview/TopicSelection';
 import { InterviewInterface } from '@/components/interview/InterviewInterface';
 import { FeedbackDisplay } from '@/components/interview/FeedbackDisplay';
@@ -16,129 +17,145 @@ import { Button } from '@/components/ui/button';
 
 const Navbar = ({ onLogoClick, isInInterview }: { onLogoClick: () => void; isInInterview: boolean }) => {
   const [scrolled, setScrolled] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Persistent dark mode
-  useEffect(() => {
-    // On mount, check localStorage or system preference
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setDarkMode(false);
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const isScrolled = currentScrollY > 10;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setScrollDirection('down');
-      } else if (currentScrollY < lastScrollY) {
-        setScrollDirection('up');
+      setScrolled(window.scrollY > 10);
+      if (window.scrollY < 10) {
+        setIsVisible(true);
+        lastScrollY.current = window.scrollY;
+        return;
       }
-      setScrolled(isScrolled);
-      setLastScrollY(currentScrollY);
+      if (window.scrollY > lastScrollY.current) {
+        // Scrolling down
+        setIsVisible(false);
+      } else {
+        // Scrolling up
+        setIsVisible(true);
+      }
+      lastScrollY.current = window.scrollY;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
-  const handleNavClick = (e: React.MouseEvent, href: string) => {
-    if (isInInterview) {
-      e.preventDefault();
-      return;
-    }
-  };
+  const navLinks = [
+    { name: 'Home', href: '#' },
+    { name: 'Features', href: '#features' },
+    { name: 'Topics', href: '#topics' },
+    { name: 'GitHub', href: 'https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform', external: true },
+  ];
 
   return (
     <nav
       className={`
-        w-full flex items-center justify-between px-6 py-2 bg-white shadow-sm sticky top-0 z-50 h-16
-        transition-all duration-500 ease-out
-        ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-white/80 backdrop-blur-sm shadow-sm'}
-        ${scrollDirection === 'down' && scrolled ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}
-        hover:shadow-xl hover:bg-white/98
-        dark:bg-gray-900/80 dark:backdrop-blur-lg dark:border-b dark:border-primary/20 dark:shadow-black/40
+        fixed top-0 left-0 w-full z-50
+        transition-all duration-500
+        ${scrolled ? 'bg-[rgba(26,26,26,0.92)] shadow-2xl border-b border-[#4fd1c5] scale-[1.025] backdrop-blur-xl' : 'bg-[rgba(26,26,26,0.8)] backdrop-blur-md'}
+        ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
       `}
+      style={{ fontFamily: 'Poppins, Montserrat, sans-serif', transition: 'all 0.5s cubic-bezier(.4,2,.3,1)', willChange: 'transform, opacity' }}
     >
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2 cursor-pointer select-none group relative" onClick={onLogoClick} style={{height: '48px'}}>
+          <img 
+            src="/logo-white.png" 
+            alt="Prepza Logo" 
+            className="h-[98px] w-[98px] object-contain transition-transform duration-300 group-hover:scale-110"
+            style={{ filter: 'drop-shadow(0 0 0 #4fd1c5)', marginTop: '-16px', marginBottom: '-16px' }}
+          />
+          {/* Removed Prepza text */}
+        </div>
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-8 ml-auto">
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              className="text-lg font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
+              style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}>
+              {link.name}
+            </a>
+          ))}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/login"
+              className="px-5 py-2 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none"
+              style={{boxShadow: '0 2px 8px #4fd1c533'}}
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none"
+              style={{boxShadow: '0 2px 16px #4fd1c555'}}
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+        {/* Hamburger for mobile */}
+        <button
+          className="md:hidden flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#4fd1c5]"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-label="Open menu"
+        >
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+      {/* Mobile Menu */}
       <div
-        className="flex items-center gap-2 cursor-pointer group transition-all duration-300 hover:scale-105  hover:rounded-lg hover:px-2 hover:py-1"
-        onClick={onLogoClick}
+        className={`md:hidden fixed top-0 left-0 w-full h-full bg-[rgba(26,26,26,0.98)] backdrop-blur-lg z-40 transition-transform duration-300 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        style={{ fontFamily: 'Poppins, Montserrat, sans-serif' }}
       >
-        <img
-          src="/logo.png"
-          alt="PREPZA Logo"
-          className={`
-            h-[90px] w-[90px] object-contain transition-all duration-300
-            ${scrolled ? 'h-[70px] w-[70px]' : 'h-[90px] w-[90px]'}
-            group-hover:rotate-6 group-hover:scale-110 group-hover:drop-shadow-lg
-          `}
-        />
+        <div className="flex flex-col items-center justify-center h-full gap-8">
+          <button
+            className="absolute top-6 right-6 p-2 rounded focus:outline-none"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              className="text-2xl font-bold text-white px-4 py-2 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.name}
+            </a>
+          ))}
+          <Link
+            to="/login"
+            className="mt-4 px-8 py-3 rounded-full font-bold text-xl shadow-lg transition-all duration-200 bg-white text-[#18404a] border-2 border-[#4fd1c5] hover:bg-[#f8feff] focus:bg-[#f8feff] focus:outline-none"
+            style={{boxShadow: '0 2px 8px #4fd1c533'}}
+            onClick={() => setMenuOpen(false)}
+          >
+            Login
+          </Link>
+          <Link
+            to="/signup"
+            className="mt-2 px-8 py-3 rounded-full font-bold text-xl shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none"
+            style={{boxShadow: '0 2px 16px #4fd1c555'}}
+            onClick={() => setMenuOpen(false)}
+          >
+            Sign Up
+          </Link>
+        </div>
       </div>
-      <div className="flex gap-6 text-base font-medium text-gray-600 dark:text-gray-200 items-center">
-        <a
-          href="#features"
-          className={`
-            hover:text-primary hover:font-semibold transition-all duration-300 relative group px-3 py-2 rounded-lg
-            ${isInInterview ? 'pointer-events-none opacity-50' : 'hover:scale-110 hover:bg-primary/10 hover:shadow-md'}
-          `}
-          onClick={(e) => handleNavClick(e, '#features')}
-        >
-          <span className="relative z-10">Features</span>
-          <span className="absolute inset-0 bg-primary/20 rounded-lg scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-        </a>
-        <a
-          href="#topics"
-          className={`
-            hover:text-primary hover:font-semibold transition-all duration-300 relative group px-3 py-2 rounded-lg
-            ${isInInterview ? 'pointer-events-none opacity-50' : 'hover:scale-110 hover:bg-primary/10 hover:shadow-md'}
-          `}
-          onClick={(e) => handleNavClick(e, '#topics')}
-        >
-          <span className="relative z-10">Topics</span>
-          <span className="absolute inset-0 bg-primary/20 rounded-lg scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-        </a>
-        <a
-          href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`
-            hover:text-primary hover:font-semibold transition-all duration-300 relative group px-3 py-2 rounded-lg
-            ${isInInterview ? 'pointer-events-none opacity-50' : 'hover:scale-110 hover:bg-primary/10 hover:shadow-md'}
-          `}
-          onClick={(e) => handleNavClick(e, 'https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform')}
-        >
-          <span className="relative z-10">GitHub</span>
-          <span className="absolute inset-0 bg-primary/20 rounded-lg scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
-          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-        </a>
-      </div>
-      <div
-        className={`
-          absolute inset-0 bg-gradient-to-r from-blue-50/50 via-purple-50/50 to-pink-50/50 
-          transition-opacity duration-1000 ease-out pointer-events-none
-          ${scrolled ? 'opacity-100' : 'opacity-0'}
-          dark:from-gray-900/80 dark:via-gray-900/80 dark:to-gray-900/80
-        `}
-      />
     </nav>
   );
 };
@@ -203,9 +220,9 @@ const Hero = () => {
   // Remove manual navigation
 
   return (
-    <section className="w-full min-h-[60vh] flex flex-col md:flex-row items-stretch justify-center bg-black relative overflow-hidden">
-      {/* Left: Full image slideshow */}
-      <div className="relative w-full md:w-1/2 h-64 md:h-auto flex-shrink-0 overflow-hidden">
+    <section className="w-full min-h-[60vh] relative bg-black overflow-hidden">
+      {/* Mobile: Full background image with overlay */}
+      <div className="block md:hidden absolute inset-0 w-full h-full z-0">
         {heroImages.map((img, idx) => (
           <img
             key={img}
@@ -216,38 +233,109 @@ const Hero = () => {
             draggable={false}
           />
         ))}
-        {/* Gradient fade overlay on the right edge for blending */}
-        <div className="absolute right-0 top-0 h-full w-1/2 md:w-1/3 bg-gradient-to-l from-black via-black/70 to-transparent pointer-events-none z-20" />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 z-20" />
       </div>
-      {/* Glassmorphism card: overlap on desktop, below on mobile */}
-      <div className="w-full flex items-center justify-center px-4 py-10 md:py-0 bg-transparent">
-        <div className="relative z-30 flex flex-col items-center md:items-start w-full max-w-xl mx-auto rounded-3xl bg-white/20 backdrop-blur-lg shadow-2xl border border-white/30 px-6 py-10
-          md:absolute md:right-8 md:top-1/2 md:-translate-y-1/2 md:w-[480px] md:mx-0">
-          <img src="/logo.png" alt="PREPZA Logo" className="h-[100px] w-[100px] object-contain mb-4 mx-auto" />
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 drop-shadow-lg">AI-Powered Interview Practice</h1>
-          <p className="text-lg md:text-xl text-gray-100 max-w-2xl mb-8 drop-shadow-md">
-            {typingSubtitle}
-            <span className="inline-block w-2 h-6 align-middle bg-white/80 animate-blink ml-1 rounded-sm" style={{verticalAlign: 'middle'}}></span>
-          </p>
-          <a
-            href="#topics"
-            onClick={handleGetStarted}
-            className="inline-block px-8 py-3 rounded-full bg-primary text-white font-semibold text-lg shadow-lg hover:bg-primary-dark transition"
-          >
-            Get Started
-          </a>
+      {/* Desktop: Split layout */}
+      <div className="hidden md:flex w-full h-full min-h-[60vh] flex-row items-stretch justify-center relative z-10">
+        {/* Left: Image slideshow */}
+        <div className="relative w-1/2 h-auto flex-shrink-0 overflow-hidden">
+          {heroImages.map((img, idx) => (
+            <img
+              key={img}
+              src={img}
+              alt={`Hero Background ${idx + 1}`}
+              className={`w-full h-full object-cover transition-opacity duration-1000 absolute inset-0 ${idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              style={{ minHeight: '100%', minWidth: '100%' }}
+              draggable={false}
+            />
+          ))}
+          {/* Gradient fade overlay on the right edge for blending */}
+          <div className="absolute right-0 top-0 h-full w-1/2 md:w-1/3 bg-gradient-to-l from-black via-black/70 to-transparent pointer-events-none z-20" />
         </div>
+        {/* Right: Content */}
+        <div className="w-1/2 flex items-center justify-center px-4 py-8 md:py-0 bg-transparent">
+          <div className="flex flex-col items-center md:items-start w-full max-w-xl mx-auto md:ml-0 gap-4 md:gap-0">
+            <img src="/logo-white.png" alt="PREPZA Logo" className="h-16 w-16 md:h-[100px] md:w-[100px] object-contain mb-4 mx-auto" />
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 text-center md:text-left" style={{color: '#7fe3e0', textShadow: '0 2px 16px #18404a44'}}>AI-Powered Interview Platform</h1>
+            <p className="text-base sm:text-lg md:text-xl mb-8 min-h-[56px] text-center md:text-left" style={{color: '#aaf2f0', letterSpacing: '0.01em', textShadow: '0 1px 8px #18404a22'}}>
+              {typingSubtitle}
+              <span className="inline-block w-2 h-6 align-middle" style={{background: '#aaf2f0', animation: 'blink 1s steps(1) infinite', marginLeft: '0.25rem', borderRadius: '0.125rem', verticalAlign: 'middle'}}></span>
+            </p>
+            <a
+              href="#topics"
+              onClick={handleGetStarted}
+              className="inline-block w-full md:w-auto px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:scale-105 hover:shadow-2xl text-center"
+              style={{background: '#7fe3e0', color: '#18404a', boxShadow: '0 2px 16px #18404a33'}}
+              onMouseOver={e => e.currentTarget.style.background = '#5ff5e0'}
+              onMouseOut={e => e.currentTarget.style.background = '#7fe3e0'}
+            >
+              Get Started
+            </a>
+          </div>
+        </div>
+      </div>
+      {/* Mobile: Overlay content centered */}
+      <div className="md:hidden relative z-30 flex flex-col items-center justify-center w-full min-h-[60vh] px-4 py-10 text-center">
+        <img src="/logo-white.png" alt="PREPZA Logo" className="h-16 w-16 object-contain mb-4 mx-auto" />
+        <h1 className="text-3xl font-extrabold mb-4" style={{color: '#7fe3e0', textShadow: '0 2px 16px #18404a44'}}>AI-Powered Interview Platform</h1>
+        <p className="text-lg mb-8 min-h-[56px]" style={{color: '#aaf2f0', letterSpacing: '0.01em', textShadow: '0 1px 8px #18404a22'}}>
+          {typingSubtitle}
+          <span className="inline-block w-2 h-6 align-middle" style={{background: '#aaf2f0', animation: 'blink 1s steps(1) infinite', marginLeft: '0.25rem', borderRadius: '0.125rem', verticalAlign: 'middle'}}></span>
+        </p>
+        <a
+          href="#topics"
+          onClick={handleGetStarted}
+          className="inline-block w-full px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:scale-105 hover:shadow-2xl text-center"
+          style={{background: '#7fe3e0', color: '#18404a', boxShadow: '0 2px 16px #18404a33'}}
+          onMouseOver={e => e.currentTarget.style.background = '#5ff5e0'}
+          onMouseOut={e => e.currentTarget.style.background = '#7fe3e0'}
+        >
+          Get Started
+        </a>
       </div>
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
         }
-        .animate-blink { animation: blink 1s steps(1) infinite; }
       `}</style>
     </section>
   );
 };
+
+const testimonials = [
+  {
+    name: 'Hooria Z',
+    text: 'PREPZA gave me the confidence to ace my technical interview. The questions felt just like the real thing!',
+    avatar: '/hooria.jpg',
+  },
+  {
+    name: 'Fatima S',
+    text: 'The HR round practice was so realistic and helped me improve my soft skills. Highly recommended!',
+    avatar: '/fatima.jpg',
+  },
+  {
+    name: 'Farhan K',
+    text: 'I loved the instant feedback and the modern interface. PREPZA helped me land my dream job!',
+    avatar: '/farhan.jpg',
+  },
+  {
+    name: 'Mehwish S',
+    text: 'The technical interview prep was spot on. I felt prepared and confident going into my interviews.',
+    avatar: '/mehwish.jpg',
+  },
+  {
+    name: 'Rida M',
+    text: 'PREPZA made practicing for HR interviews fun and effective. The AI questions were so helpful!',
+    avatar: '/rida.jpg',
+  },
+  {
+    name: 'Amaar A',
+    text: 'The best interview prep platform I have used. The questions and feedback are top-notch!',
+    avatar: '/amaar.jpg',
+  },
+];
 
 const Index = () => {
   const {
@@ -324,15 +412,138 @@ const Index = () => {
     }
   };
 
+  const [testimonialIdx, setTestimonialIdx] = useState(0);
+  const testimonialTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (testimonialTimeout.current) clearTimeout(testimonialTimeout.current);
+    testimonialTimeout.current = setTimeout(() => {
+      setTestimonialIdx((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => { if (testimonialTimeout.current) clearTimeout(testimonialTimeout.current); };
+  }, [testimonialIdx]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar onLogoClick={handleLogoClick} isInInterview={isInInterview} />
       {showHero && <Hero />}
+      {/* Features Section */}
+      <section id="features" className="w-full py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-4 tracking-tight">Features</h2>
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">Everything you need to ace your next interview—powered by AI, designed for real results.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-[#f8feff] rounded-2xl shadow-lg p-8 flex flex-col items-center text-center hover:shadow-2xl transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#4fd1c5]/20 flex items-center justify-center mb-5">
+                <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#13b5b1"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#18404a] mb-2">AI-Powered Questions</h3>
+              <p className="text-gray-600">Get realistic, adaptive interview questions generated by advanced AI for every session.</p>
+            </div>
+            {/* Feature 2 */}
+            <div className="bg-[#f8feff] rounded-2xl shadow-lg p-8 flex flex-col items-center text-center hover:shadow-2xl transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#4fd1c5]/20 flex items-center justify-center mb-5">
+                <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#13b5b1"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2a4 4 0 018 0v2M12 7a4 4 0 100 8 4 4 0 000-8z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#18404a] mb-2">Real-Time Feedback</h3>
+              <p className="text-gray-600">Instantly see your strengths and areas to improve after every answer, with actionable AI feedback.</p>
+            </div>
+            {/* Feature 3 */}
+            <div className="bg-[#f8feff] rounded-2xl shadow-lg p-8 flex flex-col items-center text-center hover:shadow-2xl transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#4fd1c5]/20 flex items-center justify-center mb-5">
+                <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#13b5b1"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 4a4 4 0 014 4v4a4 4 0 01-8 0V8a4 4 0 014-4z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#18404a] mb-2">Topic & Mode Selection</h3>
+              <p className="text-gray-600">Practice technical or HR interviews, tailored to your goals and experience level.</p>
+            </div>
+            {/* Feature 4 */}
+            <div className="bg-[#f8feff] rounded-2xl shadow-lg p-8 flex flex-col items-center text-center hover:shadow-2xl transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#4fd1c5]/20 flex items-center justify-center mb-5">
+                <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#13b5b1"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 17a4 4 0 004 4h10a4 4 0 004-4V7a4 4 0 00-4-4H7a4 4 0 00-4 4v10z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-[#18404a] mb-2">Progress Tracking</h3>
+              <p className="text-gray-600">Visualize your improvement over time and track your interview readiness with detailed analytics.</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-12" id="topics">
         {renderCurrentPhase()}
       </main>
-      <footer className="w-full py-6 bg-white border-t text-center text-gray-500 text-sm">
-        &copy; {new Date().getFullYear()} PREPZA. All rights reserved.
+      {/* Testimonials Section */}
+      <section className="w-full bg-white py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">What Our Users Say</h2>
+          <p className="text-gray-500 text-lg">Real feedback from PREPZA users who landed their dream jobs.</p>
+        </div>
+        <div className="flex justify-center items-center min-h-[320px] relative">
+          {testimonials.map((t, i) => (
+            <div
+              key={i}
+              className={`bg-gray-50 rounded-2xl shadow-lg p-8 flex flex-col items-center transition-all duration-700 ease-in-out absolute w-full max-w-md mx-auto
+                ${i === testimonialIdx ? 'opacity-100 scale-100 z-10 pointer-events-auto hover:scale-105 hover:shadow-2xl hover:ring-2 hover:ring-accent/40' : 'opacity-0 scale-95 z-0 pointer-events-none'}`}
+              style={{
+                transitionProperty: 'opacity, transform',
+              }}
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 overflow-hidden">
+                {t.avatar ? (
+                  <img src={t.avatar} alt={t.name} className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <span className="text-2xl font-bold text-primary">{t.name[0]}</span>
+                )}
+              </div>
+              <p className="text-gray-700 text-base mb-4 italic text-center">“{t.text}”</p>
+              <div className="text-primary font-semibold text-lg">{t.name}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <footer className="w-full bg-[#1a1a1a] border-t-2 border-t-[#4fd1c5] py-10 px-4 text-gray-400 font-sans mt-16">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          {/* Logo/Brand */}
+          <div className="flex items-center gap-3 mb-6 md:mb-0" style={{height: '96px', width: '96px', overflow: 'visible'}}>
+            <img
+              src="/logo-white.png"
+              alt="Prepza Logo"
+              className="object-contain transition-transform duration-300 hover:scale-125"
+              style={{
+                height: '96px',
+                width: '96px',
+                position: 'relative',
+                zIndex: 2
+              }}
+            />
+            {/* If the logo still looks small, check if /logo-white.png has transparent padding inside the image itself. */}
+            <span className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}></span>
+          </div>
+          {/* Navigation Links */}
+          <nav className="flex flex-col md:flex-row gap-4 md:gap-8 items-center text-base font-medium">
+            <a href="#" className="hover:text-[#4fd1c5] transition-colors">Home</a>
+            <a href="#features" className="hover:text-[#4fd1c5] transition-colors">Features</a>
+            <a href="#topics" className="hover:text-[#4fd1c5] transition-colors">Topics</a>
+            <a href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform" target="_blank" rel="noopener noreferrer" className="hover:text-[#4fd1c5] transition-colors">GitHub</a>
+            <a href="#contact" className="hover:text-[#4fd1c5] transition-colors">Contact</a>
+          </nav>
+          {/* Social Icons */}
+          <div className="flex gap-4 mt-6 md:mt-0">
+            <a href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#4fd1c5] transition-colors">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.339-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.748-1.025 2.748-1.025.546 1.378.202 2.397.1 2.65.64.699 1.028 1.592 1.028 2.683 0 3.842-2.338 4.687-4.566 4.936.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" /></svg>
+            </a>
+            <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-[#4fd1c5] transition-colors">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 19c11 0 13-9 13-13v-.59A9.72 9.72 0 0022 3.13a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1a9.29 9.29 0 01-2.93 1.12A4.61 4.61 0 0012 6.07c0 .36.04.71.11 1.05A13.09 13.09 0 013 3.16s-4 9 5 13a13.07 13.07 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0024 4.59a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1z" /></svg>
+            </a>
+            <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#4fd1c5] transition-colors">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8a6 6 0 016 6v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a6 6 0 016-6h8zm-6 8v-4m4 4v-4m-8 4v-4" /></svg>
+            </a>
+          </div>
+        </div>
+        <div className="mt-8 text-center text-sm text-gray-500" style={{fontFamily: 'Open Sans, Montserrat, sans-serif'}}>
+          © 2025 Prepza. All rights reserved.
+        </div>
       </footer>
 
       {/* Navigation Confirmation Dialog */}

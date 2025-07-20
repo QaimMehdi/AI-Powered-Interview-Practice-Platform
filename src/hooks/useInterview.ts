@@ -76,8 +76,12 @@ export const useInterview = () => {
     ]
   };
 
-  const startInterview = useCallback((topic: TopicType) => {
-    const questions = mockQuestions[topic] || [];
+  const startInterview = useCallback((topic: string) => {
+    // Map new topic keys to existing ones with questions
+    let mappedTopic = topic;
+    if (topic === 'technical') mappedTopic = 'java-oop';
+    if (topic === 'hr') mappedTopic = 'behavioral';
+    const questions = mockQuestions[mappedTopic] || [];
     const session: InterviewSession = {
       id: Date.now().toString(),
       topic,
