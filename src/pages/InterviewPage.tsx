@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInterview } from '@/hooks/useInterview';
 import { InterviewInterface } from '@/components/interview/InterviewInterface';
+import { InterviewSummary } from '@/components/interview/InterviewSummary';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -31,8 +32,8 @@ const InterviewPage = () => {
     if (!topic) navigate('/');
   }, [topic, state.currentPhase, startInterview, navigate]);
 
-  // Only show interview interface if in interview/feedback/summary phase
-  const isInInterview = ['interview', 'feedback', 'summary'].includes(state.currentPhase);
+  // Only show interview interface if in interview/summary phase
+  const isInInterview = ['interview', 'summary'].includes(state.currentPhase);
   if (!isInInterview) return null;
 
   // Centralized leave logic
@@ -65,6 +66,15 @@ const InterviewPage = () => {
             onSubmitAnswer={submitAnswer}
             onEndInterview={endInterview}
             onToggleRecording={setRecording}
+          />
+        )}
+        {state.currentPhase === 'summary' && state.currentSession && (
+          <InterviewSummary
+            session={state.currentSession}
+            onStartNewInterview={() => {
+              resetInterview();
+              navigate('/');
+            }}
           />
         )}
       </main>

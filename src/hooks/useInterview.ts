@@ -84,7 +84,7 @@ export const useInterview = () => {
     const questions = mockQuestions[mappedTopic] || [];
     const session: InterviewSession = {
       id: Date.now().toString(),
-      topic,
+      topic: mappedTopic as TopicType,
       startTime: new Date(),
       status: 'in-progress',
       questions,
@@ -147,12 +147,19 @@ export const useInterview = () => {
         updatedSession.overallScore = Math.floor(
           updatedSession.feedback.reduce((sum, f) => sum + f.score, 0) / updatedSession.feedback.length
         );
+        // Go directly to summary when interview is complete
+        return {
+          ...prev,
+          currentSession: updatedSession,
+          currentPhase: 'summary'
+        };
       }
 
+      // Continue to next question without showing feedback
       return {
         ...prev,
         currentSession: updatedSession,
-        currentPhase: updatedSession.status === 'completed' ? 'summary' : 'interview'
+        currentPhase: 'interview'
       };
     });
 
@@ -170,6 +177,7 @@ export const useInterview = () => {
     setState(prev => {
       if (!prev.currentSession) return prev;
       
+      // Always go to interview phase since we're skipping feedback
       return {
         ...prev,
         currentPhase: 'interview'
