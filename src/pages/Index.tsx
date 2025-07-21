@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for routing
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // Import Link for routing
 import { TopicSelection } from '@/components/interview/TopicSelection';
 import { InterviewInterface } from '@/components/interview/InterviewInterface';
 import { FeedbackDisplay } from '@/components/interview/FeedbackDisplay';
@@ -14,151 +14,8 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-
-const Navbar = ({ onLogoClick, isInInterview }: { onLogoClick: () => void; isInInterview: boolean }) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-      if (window.scrollY < 10) {
-        setIsVisible(true);
-        lastScrollY.current = window.scrollY;
-        return;
-      }
-      if (window.scrollY > lastScrollY.current) {
-        // Scrolling down
-        setIsVisible(false);
-      } else {
-        // Scrolling up
-        setIsVisible(true);
-      }
-      lastScrollY.current = window.scrollY;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: 'Home', href: '#' },
-    { name: 'Features', href: '#features' },
-    { name: 'Topics', href: '#topics' },
-    { name: 'GitHub', href: 'https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform', external: true },
-  ];
-
-  return (
-    <nav
-      className={`
-        fixed top-0 left-0 w-full z-50
-        transition-all duration-500
-        ${scrolled ? 'bg-[rgba(26,26,26,0.92)] shadow-2xl border-b border-[#4fd1c5] scale-[1.025] backdrop-blur-xl' : 'bg-[rgba(26,26,26,0.8)] backdrop-blur-md'}
-        ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
-      `}
-      style={{ fontFamily: 'Poppins, Montserrat, sans-serif', transition: 'all 0.5s cubic-bezier(.4,2,.3,1)', willChange: 'transform, opacity' }}
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-        {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer select-none group relative" onClick={onLogoClick} style={{height: '48px'}}>
-          <img 
-            src="/logo-white.png" 
-            alt="Prepza Logo" 
-            className="h-[98px] w-[98px] object-contain transition-transform duration-300 group-hover:scale-110"
-            style={{ filter: 'drop-shadow(0 0 0 #4fd1c5)', marginTop: '-16px', marginBottom: '-16px' }}
-          />
-          {/* Removed Prepza text */}
-        </div>
-        {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-8 ml-auto">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              target={link.external ? '_blank' : undefined}
-              rel={link.external ? 'noopener noreferrer' : undefined}
-              className="text-lg font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
-              style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}>
-              {link.name}
-            </a>
-          ))}
-          <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="px-5 py-2 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none"
-              style={{boxShadow: '0 2px 8px #4fd1c533'}}
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none"
-              style={{boxShadow: '0 2px 16px #4fd1c555'}}
-            >
-              Sign Up
-            </Link>
-          </div>
-        </div>
-        {/* Hamburger for mobile */}
-        <button
-          className="md:hidden flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#4fd1c5]"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label="Open menu"
-        >
-          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden fixed top-0 left-0 w-full h-full bg-[rgba(26,26,26,0.98)] backdrop-blur-lg z-40 transition-transform duration-300 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ fontFamily: 'Poppins, Montserrat, sans-serif' }}
-      >
-        <div className="flex flex-col items-center justify-center h-full gap-8">
-          <button
-            className="absolute top-6 right-6 p-2 rounded focus:outline-none"
-            onClick={() => setMenuOpen(false)}
-            aria-label="Close menu"
-          >
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              target={link.external ? '_blank' : undefined}
-              rel={link.external ? 'noopener noreferrer' : undefined}
-              className="text-2xl font-bold text-white px-4 py-2 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
-              onClick={() => setMenuOpen(false)}
-            >
-              {link.name}
-            </a>
-          ))}
-          <Link
-            to="/login"
-            className="mt-4 px-8 py-3 rounded-full font-bold text-xl shadow-lg transition-all duration-200 bg-white text-[#18404a] border-2 border-[#4fd1c5] hover:bg-[#f8feff] focus:bg-[#f8feff] focus:outline-none"
-            style={{boxShadow: '0 2px 8px #4fd1c533'}}
-            onClick={() => setMenuOpen(false)}
-          >
-            Login
-          </Link>
-          <Link
-            to="/signup"
-            className="mt-2 px-8 py-3 rounded-full font-bold text-xl shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none"
-            style={{boxShadow: '0 2px 16px #4fd1c555'}}
-            onClick={() => setMenuOpen(false)}
-          >
-            Sign Up
-          </Link>
-        </div>
-      </div>
-    </nav>
-  );
-};
+import Navbar from '@/components/Navbar';
+import Contact from './Contact';
 
 const heroImages = ['/hero.png', '/hero1.jpg', '/hero2.jpg', '/hero3.jpg'];
 
@@ -282,17 +139,17 @@ const Hero = () => {
         <p className="text-lg mb-8 min-h-[56px]" style={{color: '#aaf2f0', letterSpacing: '0.01em', textShadow: '0 1px 8px #18404a22'}}>
           {typingSubtitle}
           <span className="inline-block w-2 h-6 align-middle" style={{background: '#aaf2f0', animation: 'blink 1s steps(1) infinite', marginLeft: '0.25rem', borderRadius: '0.125rem', verticalAlign: 'middle'}}></span>
-        </p>
-        <a
-          href="#topics"
-          onClick={handleGetStarted}
+      </p>
+      <a
+        href="#topics"
+        onClick={handleGetStarted}
           className="inline-block w-full px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:scale-105 hover:shadow-2xl text-center"
           style={{background: '#7fe3e0', color: '#18404a', boxShadow: '0 2px 16px #18404a33'}}
           onMouseOver={e => e.currentTarget.style.background = '#5ff5e0'}
           onMouseOut={e => e.currentTarget.style.background = '#7fe3e0'}
-        >
-          Get Started
-        </a>
+      >
+        Get Started
+      </a>
       </div>
       <style>{`
         @keyframes blink {
@@ -311,9 +168,20 @@ const testimonials = [
     avatar: '/hooria.jpg',
   },
   {
+    name: 'Rida M',
+    text: 'PREPZA made practicing for HR interviews fun and effective. The AI questions were so helpful!',
+    avatar: '/rida.jpg',
+  },
+  {
     name: 'Fatima S',
     text: 'The HR round practice was so realistic and helped me improve my soft skills. Highly recommended!',
     avatar: '/fatima.jpg',
+  },
+
+  {
+    name: 'Amaar A',
+    text: 'The best interview prep platform I have used. The questions and feedback are top-notch!',
+    avatar: '/amaar.jpg',
   },
   {
     name: 'Farhan K',
@@ -325,17 +193,72 @@ const testimonials = [
     text: 'The technical interview prep was spot on. I felt prepared and confident going into my interviews.',
     avatar: '/mehwish.jpg',
   },
-  {
-    name: 'Rida M',
-    text: 'PREPZA made practicing for HR interviews fun and effective. The AI questions were so helpful!',
-    avatar: '/rida.jpg',
-  },
-  {
-    name: 'Amaar A',
-    text: 'The best interview prep platform I have used. The questions and feedback are top-notch!',
-    avatar: '/amaar.jpg',
-  },
+ 
+
 ];
+
+const Footer = ({ isInInterview, onRequestLeave }: { isInInterview: boolean; onRequestLeave: (path: string) => void }) => {
+  const navLinks = [
+    { name: 'Home', href: '#' },
+    { name: 'Features', href: '#features' },
+    { name: 'Topics', href: '#topics' },
+    { name: 'GitHub', href: 'https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform', external: true },
+    { name: 'Contact', href: '/contact' }, // Change to route
+  ];
+
+  const navigate = useNavigate();
+
+  return (
+    <footer className="w-full bg-[#1a1a1a] border-t-2 border-t-[#4fd1c5] py-10 px-4 text-gray-400 font-sans mt-16">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* Logo/Brand */}
+        <div className="flex items-center gap-3 mb-6 md:mb-0" style={{height: '96px', width: '96px', overflow: 'visible'}}>
+          <img
+            src="/logo-white.png"
+            alt="Prepza Logo"
+            className="object-contain transition-transform duration-300 hover:scale-125"
+            style={{
+              height: '96px',
+              width: '96px',
+              position: 'relative',
+              zIndex: 2
+            }}
+          />
+          <span className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}></span>
+        </div>
+        {/* Navigation Links */}
+        <nav className="flex flex-col md:flex-row gap-4 md:gap-8 items-center text-base font-medium">
+          {navLinks.map((link) => (
+            <span
+              key={link.name}
+              onClick={() => link.external ? window.open(link.href, '_blank') : link.href === '/contact' ? navigate('/contact') : onRequestLeave(link.href)}
+              className="cursor-pointer hover:text-[#4fd1c5] transition-colors"
+            >
+              {link.name}
+            </span>
+          ))}
+        </nav>
+        {/* Social Icons */}
+        <div className="flex gap-4 mt-6 md:mt-0">
+          <a href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#4fd1c5] transition-colors">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.339-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.748-1.025 2.748-1.025.546 1.378.202 2.397.1 2.65.64.699 1.028 1.592 1.028 2.683 0 3.842-2.338 4.687-4.566 4.936.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" /></svg>
+          </a>
+          <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-[#4fd1c5] transition-colors">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 19c11 0 13-9 13-13v-.59A9.72 9.72 0 0022 3.13a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1a9.29 9.29 0 01-2.93 1.12A4.61 4.61 0 0012 6.07c0 .36.04.71.11 1.05A13.09 13.09 0 013 3.16s-4 9 5 13a13.07 13.07 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0024 4.59a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1z" /></svg>
+          </a>
+          <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#4fd1c5] transition-colors">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8a6 6 0 016 6v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a6 6 0 016-6h8zm-6 8v-4m4 4v-4m-8 4v-4" /></svg>
+          </a>
+        </div>
+      </div>
+      <div className="mt-8 text-center text-sm text-gray-500" style={{fontFamily: 'Open Sans, Montserrat, sans-serif'}}>
+        © 2025 Prepza. All rights reserved.
+      </div>
+    </footer>
+  );
+};
+
+export { Footer };
 
 const Index = () => {
   const {
@@ -348,7 +271,9 @@ const Index = () => {
     setRecording
   } = useInterview();
 
-  const [showNavigationDialog, setShowNavigationDialog] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   // Show hero only on topic selection
   const showHero = state.currentPhase === 'topic-selection';
@@ -358,20 +283,32 @@ const Index = () => {
 
   const handleLogoClick = () => {
     if (state.currentPhase !== 'topic-selection') {
-      setShowNavigationDialog(true);
+      setShowLeaveDialog(true);
     }
     // If already on topic selection, do nothing
   };
 
-  const confirmNavigation = () => {
-    setShowNavigationDialog(false);
+  const handleRequestLeave = (path: string) => {
+    if (isInInterview) {
+      setShowLeaveDialog(true);
+    } else {
+      if (path === '#' || path === '/#') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate(path);
+      }
+    }
+  };
+
+  const confirmLeave = () => {
+    setShowLeaveDialog(false);
     resetInterview();
   };
 
   const renderCurrentPhase = () => {
     switch (state.currentPhase) {
       case 'topic-selection':
-        return <TopicSelection key={JSON.stringify(state)} onSelectTopic={startInterview} />;
+        return <TopicSelection />;
       case 'interview':
         if (!state.currentSession) return null;
         return (
@@ -408,7 +345,7 @@ const Index = () => {
           />
         );
       default:
-        return <TopicSelection onSelectTopic={startInterview} />;
+        return <TopicSelection />;
     }
   };
 
@@ -423,9 +360,25 @@ const Index = () => {
     return () => { if (testimonialTimeout.current) clearTimeout(testimonialTimeout.current); };
   }, [testimonialIdx]);
 
+  // Scroll to section on hash change or mount
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.getElementById(location.hash.replace('#', ''));
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 0);
+      }
+    }
+  }, [location.hash]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar onLogoClick={handleLogoClick} isInInterview={isInInterview} />
+      <Navbar 
+        onLogoClick={() => isInInterview ? handleRequestLeave('/') : navigate('/')}
+        isInInterview={isInInterview}
+        onRequestLeave={handleRequestLeave}
+      />
       {showHero && <Hero />}
       {/* Features Section */}
       <section id="features" className="w-full py-20 bg-white">
@@ -502,52 +455,9 @@ const Index = () => {
           ))}
         </div>
       </section>
-      <footer className="w-full bg-[#1a1a1a] border-t-2 border-t-[#4fd1c5] py-10 px-4 text-gray-400 font-sans mt-16">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          {/* Logo/Brand */}
-          <div className="flex items-center gap-3 mb-6 md:mb-0" style={{height: '96px', width: '96px', overflow: 'visible'}}>
-            <img
-              src="/logo-white.png"
-              alt="Prepza Logo"
-              className="object-contain transition-transform duration-300 hover:scale-125"
-              style={{
-                height: '96px',
-                width: '96px',
-                position: 'relative',
-                zIndex: 2
-              }}
-            />
-            {/* If the logo still looks small, check if /logo-white.png has transparent padding inside the image itself. */}
-            <span className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}></span>
-          </div>
-          {/* Navigation Links */}
-          <nav className="flex flex-col md:flex-row gap-4 md:gap-8 items-center text-base font-medium">
-            <a href="#" className="hover:text-[#4fd1c5] transition-colors">Home</a>
-            <a href="#features" className="hover:text-[#4fd1c5] transition-colors">Features</a>
-            <a href="#topics" className="hover:text-[#4fd1c5] transition-colors">Topics</a>
-            <a href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform" target="_blank" rel="noopener noreferrer" className="hover:text-[#4fd1c5] transition-colors">GitHub</a>
-            <a href="#contact" className="hover:text-[#4fd1c5] transition-colors">Contact</a>
-          </nav>
-          {/* Social Icons */}
-          <div className="flex gap-4 mt-6 md:mt-0">
-            <a href="https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#4fd1c5] transition-colors">
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.339-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.748-1.025 2.748-1.025.546 1.378.202 2.397.1 2.65.64.699 1.028 1.592 1.028 2.683 0 3.842-2.338 4.687-4.566 4.936.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.749 0 .268.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" /></svg>
-            </a>
-            <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-[#4fd1c5] transition-colors">
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 19c11 0 13-9 13-13v-.59A9.72 9.72 0 0022 3.13a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1a9.29 9.29 0 01-2.93 1.12A4.61 4.61 0 0012 6.07c0 .36.04.71.11 1.05A13.09 13.09 0 013 3.16s-4 9 5 13a13.07 13.07 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0024 4.59a9.3 9.3 0 01-2.65.73A4.62 4.62 0 0021.4 2.1z" /></svg>
-            </a>
-            <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#4fd1c5] transition-colors">
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 8a6 6 0 016 6v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a6 6 0 016-6h8zm-6 8v-4m4 4v-4m-8 4v-4" /></svg>
-            </a>
-          </div>
-        </div>
-        <div className="mt-8 text-center text-sm text-gray-500" style={{fontFamily: 'Open Sans, Montserrat, sans-serif'}}>
-          © 2025 Prepza. All rights reserved.
-        </div>
-      </footer>
-
-      {/* Navigation Confirmation Dialog */}
-      <Dialog open={showNavigationDialog} onOpenChange={setShowNavigationDialog}>
+      <Footer isInInterview={isInInterview} onRequestLeave={handleRequestLeave} />
+      {/* Centralized Leave Interview Dialog */}
+      <Dialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Are you sure you want to exit the interview?</DialogTitle>
@@ -556,10 +466,10 @@ const Index = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNavigationDialog(false)}>
+            <Button variant="outline" onClick={() => setShowLeaveDialog(false)}>
               Continue Interview
             </Button>
-            <Button variant="destructive" onClick={confirmNavigation}>
+            <Button variant="destructive" onClick={confirmLeave}>
               Exit Interview
             </Button>
           </DialogFooter>

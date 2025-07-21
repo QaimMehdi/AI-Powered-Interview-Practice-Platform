@@ -7,24 +7,31 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login"; // Import Login page
 import Signup from "./pages/Signup"; // Import Signup page
-import React, { useEffect, useState } from "react";
+import InterviewPage from "./pages/InterviewPage";
+import React, { useEffect, useState, useRef } from "react";
 import Loader from "@/components/ui/Loader";
+import Contact from './pages/Contact';
 
 const queryClient = new QueryClient();
 
 function AppWithLoader() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const prevPathname = useRef(location.pathname);
 
   useEffect(() => {
-    setLoading(true);
-    // Show loader for 2 seconds (2000ms) on every route change
-    const timeout = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timeout);
-  }, [location]);
+    // Only show loader if the pathname (route) actually changes (not for hash or in-page navigation)
+    if (location.pathname !== prevPathname.current) {
+      setLoading(true);
+      const timeout = setTimeout(() => setLoading(false), 2000);
+      prevPathname.current = location.pathname;
+      return () => clearTimeout(timeout);
+    }
+  }, [location.pathname]);
 
   return (
     <>
+      
       {loading && (
         <div style={{
           position: 'fixed',
@@ -41,10 +48,13 @@ function AppWithLoader() {
           <Loader />
         </div>
       )}
+     
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} /> {/* Login route */}
         <Route path="/signup" element={<Signup />} /> {/* Signup route */}
+        <Route path="/interview/:topic" element={<InterviewPage />} /> {/* Interview route */}
+        <Route path="/contact" element={<Contact />} /> {/* Contact route */}
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

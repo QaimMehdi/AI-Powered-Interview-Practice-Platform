@@ -123,11 +123,10 @@ export const InterviewInterface = ({
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Column - AI Avatar */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 mb-4 lg:mb-0 flex justify-center">
           <AIAvatar
             isSpeaking={isAvatarSpeaking}
             isListening={isRecording}
@@ -136,14 +135,13 @@ export const InterviewInterface = ({
         </div>
 
         {/* Right Column - Interview Content */}
-        <div className="lg:col-span-2 space-y-6">
-          
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Header with Progress */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                     Interview in Progress
                     <Badge variant="outline">
                       Question {session.currentQuestionIndex + 1} of {session.questions.length}
@@ -153,7 +151,7 @@ export const InterviewInterface = ({
                     Topic: {session.topic.replace('-', ' ').toUpperCase()}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right mt-2 sm:mt-0">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" />
                     Total: {formatTime(timeElapsed)}
@@ -170,7 +168,7 @@ export const InterviewInterface = ({
           {/* Question Card */}
           <Card>
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <CardTitle className="text-xl">Current Question</CardTitle>
                 <Badge className={getDifficultyColor(currentQuestion.difficulty)}>
                   {currentQuestion.difficulty}
@@ -197,22 +195,21 @@ export const InterviewInterface = ({
                 placeholder="Type your answer here or use voice recording..."
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                className="min-h-[150px] resize-none"
+                className="min-h-[100px] sm:min-h-[150px] resize-none text-base"
                 disabled={isAvatarSpeaking}
               />
-              
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 {/* Voice Recording Button */}
                 <Button
                   variant={isRecording ? "destructive" : "outline"}
                   size="sm"
                   onClick={() => onToggleRecording(!isRecording)}
                   disabled={isAvatarSpeaking}
+                  className="w-full sm:w-auto"
                 >
                   {isRecording ? <MicOff className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
                   {isRecording ? 'Stop Recording' : 'Start Recording'}
                 </Button>
-
                 {/* Submit Button */}
                 <Button
                   onClick={handleSubmit}
@@ -222,12 +219,12 @@ export const InterviewInterface = ({
                   <Send className="w-4 h-4 mr-2" />
                   Submit Answer
                 </Button>
-
                 {/* Skip Button */}
                 <Button
                   variant="outline"
                   onClick={handleSkipQuestion}
                   disabled={isAvatarSpeaking}
+                  className="w-full sm:w-auto"
                 >
                   <SkipForward className="w-4 h-4 mr-2" />
                   Skip
@@ -239,27 +236,26 @@ export const InterviewInterface = ({
           {/* End Interview Option */}
           <Card className="border-destructive/20">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <div>
                   <h3 className="font-semibold text-foreground">End Interview Early</h3>
                   <p className="text-sm text-muted-foreground">
                     You can end the interview at any time to see your results
                   </p>
                 </div>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleEndInterview}
                   disabled={isAvatarSpeaking}
+                  className="mt-2 sm:mt-0"
                 >
                   End Interview
                 </Button>
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
-
       {/* Exit Confirmation Dialog */}
       <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <DialogContent>
@@ -279,7 +275,6 @@ export const InterviewInterface = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Skip Confirmation Dialog */}
       <Dialog open={showSkipDialog} onOpenChange={setShowSkipDialog}>
         <DialogContent>
