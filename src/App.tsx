@@ -16,11 +16,17 @@ const queryClient = new QueryClient();
 
 function AppWithLoader() {
   const location = useLocation();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start as true for initial load
   const prevPathname = useRef(location.pathname);
 
+  // Show loader on initial mount
   useEffect(() => {
-    // Only show loader if the pathname (route) actually changes (not for hash or in-page navigation)
+    const timeout = setTimeout(() => setLoading(false), 1500); // 1.5s loader on first load
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Show loader on route change
+  useEffect(() => {
     if (location.pathname !== prevPathname.current) {
       setLoading(true);
       const timeout = setTimeout(() => setLoading(false), 2000);
