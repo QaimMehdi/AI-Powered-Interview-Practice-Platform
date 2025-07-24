@@ -1,21 +1,26 @@
 package com.yourcompany.interviewplatform.service;
 
+import com.yourcompany.interviewplatform.ai.AIService;
 import com.yourcompany.interviewplatform.dto.*;
 import com.yourcompany.interviewplatform.model.*;
 import com.yourcompany.interviewplatform.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SessionService {
     private final InterviewSessionRepository sessionRepo;
     private final QuestionAnswerRepository qaRepo;
+    private final AIService aiService;
 
-    public SessionService(InterviewSessionRepository sessionRepo, QuestionAnswerRepository qaRepo) {
+    public SessionService(InterviewSessionRepository sessionRepo, QuestionAnswerRepository qaRepo, AIService aiService) {
         this.sessionRepo = sessionRepo;
         this.qaRepo = qaRepo;
+        this.aiService = aiService;
     }
 
     @Transactional
@@ -23,10 +28,9 @@ public class SessionService {
         InterviewSession session = new InterviewSession();
         session.setTopic(req.getTopic());
         session.setUserId(req.getUserId());
-        // TODO: set interviewType if needed
         session = sessionRepo.save(session);
-        // Generate first question (placeholder)
-        String firstQuestion = "[AI] First question for topic: " + req.getTopic();
+        // Generate first question using AIService
+        String firstQuestion = aiService.generateQuestion(req.getTopic(), List.of(), List.of(), req.getType());
         QuestionAnswer qa = new QuestionAnswer();
         qa.setSession(session);
         qa.setOrderIndex(0);
@@ -44,27 +48,31 @@ public class SessionService {
     public SessionResponse answerQuestion(AnswerRequest req) {
         InterviewSession session = sessionRepo.findById(req.getSessionId())
             .orElseThrow(() -> new RuntimeException("Session not found"));
+        List<QuestionAnswer> qaList = session.getQuestionAnswers();
+        if (qaList == null || qaList.isEmpty()) throw new RuntimeException("No question to answer");
         // Find last QA
-        Optional<QuestionAnswer> lastQaOpt = session.getQuestionAnswers().stream()
-            .max((a, b) -> Integer.compare(a.getOrderIndex(), b.getOrderIndex()));
-        if (lastQaOpt.isEmpty()) throw new RuntimeException("No question to answer");
-        QuestionAnswer lastQa = lastQaOpt.get();
+        QuestionAnswer lastQa = qaList.stream().max((a, b) -> Integer.compare(a.getOrderIndex(), b.getOrderIndex())).get();
         lastQa.setAnswer(req.getAnswer());
-        // Generate feedback (placeholder)
-        lastQa.setFeedback("[AI] Feedback for answer: " + req.getAnswer());
+        // Generate feedback using AIService
+        String feedback = aiService.generateFeedback(lastQa.getQuestion(), req.getAnswer(), req.getType());
+        lastQa.setFeedback(feedback);
         qaRepo.save(lastQa);
-        // Generate next question (placeholder)
+        // Prepare history for next question
+        List<String> prevQuestions = qaList.stream().map(QuestionAnswer::getQuestion).collect(Collectors.toList());
+        List<String> prevAnswers = qaList.stream().map(qa -> qa.getAnswer() == null ? "" : qa.getAnswer()).collect(Collectors.toList());
+        // Generate next question using AIService
+        String nextQuestion = aiService.generateQuestion(session.getTopic(), prevQuestions, prevAnswers, req.getType());
         QuestionAnswer nextQa = new QuestionAnswer();
         nextQa.setSession(session);
         nextQa.setOrderIndex(lastQa.getOrderIndex() + 1);
-        nextQa.setQuestion("[AI] Next question for topic: " + session.getTopic());
+        nextQa.setQuestion(nextQuestion);
         qaRepo.save(nextQa);
         SessionResponse resp = new SessionResponse();
         resp.setSessionId(session.getId());
         resp.setTopic(session.getTopic());
         resp.setStartedAt(session.getStartedAt());
-        resp.setCurrentQuestion(nextQa.getQuestion());
-        resp.setFeedback(lastQa.getFeedback());
+        resp.setCurrentQuestion(nextQuestion);
+        resp.setFeedback(feedback);
         return resp;
     }
 
@@ -74,12 +82,17 @@ public class SessionService {
             .orElseThrow(() -> new RuntimeException("Session not found"));
         session.setEndedAt(java.time.Instant.now());
         sessionRepo.save(session);
+        List<QuestionAnswer> qaList = session.getQuestionAnswers();
+        List<String> questions = qaList == null ? List.of() : qaList.stream().map(QuestionAnswer::getQuestion).collect(Collectors.toList());
+        List<String> answers = qaList == null ? List.of() : qaList.stream().map(qa -> qa.getAnswer() == null ? "" : qa.getAnswer()).collect(Collectors.toList());
+        List<String> feedbacks = qaList == null ? List.of() : qaList.stream().map(qa -> qa.getFeedback() == null ? "" : qa.getFeedback()).collect(Collectors.toList());
+        String summary = aiService.summarizeSession(session.getTopic(), questions, answers, feedbacks, null);
         SessionResponse resp = new SessionResponse();
         resp.setSessionId(session.getId());
         resp.setTopic(session.getTopic());
         resp.setStartedAt(session.getStartedAt());
         resp.setEndedAt(session.getEndedAt());
-        resp.setSummary("[AI] Interview summary and improvement tips.");
+        resp.setSummary(summary);
         return resp;
     }
 } 

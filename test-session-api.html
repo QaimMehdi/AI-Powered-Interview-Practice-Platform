@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test AI Interview Session API</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    textarea, input { width: 100%; margin-bottom: 1rem; }
+    button { margin-bottom: 1rem; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Test AI Interview Session API</h1>
+  <!-- Start Session -->
+  <h2>1. Start Session</h2>
+  <input id="topic" placeholder="Topic (e.g. JavaScript)" value="JavaScript" />
+  <input id="type" placeholder="Type (technical/hr)" value="technical" />
+  <input id="userId" placeholder="User ID (optional)" />
+  <button onclick="startSession()">Start Session</button>
+  <pre id="startResult"></pre>
+
+  <!-- Answer Question -->
+  <h2>2. Answer Question</h2>
+  <input id="sessionId" placeholder="Session ID (from above)" />
+  <input id="answer" placeholder="Your answer" />
+  <input id="type2" placeholder="Type (technical/hr)" value="technical" />
+  <button onclick="answerQuestion()">Submit Answer</button>
+  <pre id="answerResult"></pre>
+
+  <!-- End Session -->
+  <h2>3. End Session</h2>
+  <input id="endSessionId" placeholder="Session ID (from above)" />
+  <button onclick="endSession()">End Session</button>
+  <pre id="endResult"></pre>
+
+  <script>
+    // 1. Start a session
+    async function startSession() {
+      const topic = document.getElementById('topic').value;
+      const type = document.getElementById('type').value;
+      const userId = document.getElementById('userId').value;
+      const body = { topic, type };
+      if (userId) body.userId = userId;
+      document.getElementById('startResult').textContent = 'Loading...';
+      const res = await fetch('http://localhost:8080/api/session/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      document.getElementById('startResult').textContent = JSON.stringify(data, null, 2);
+      // Auto-fill sessionId for next steps
+      if (data.sessionId) {
+        document.getElementById('sessionId').value = data.sessionId;
+        document.getElementById('endSessionId').value = data.sessionId;
+      }
+    }
+
+    // 2. Submit an answer
+    async function answerQuestion() {
+      const sessionId = document.getElementById('sessionId').value;
+      const answer = document.getElementById('answer').value;
+      const type = document.getElementById('type2').value;
+      document.getElementById('answerResult').textContent = 'Loading...';
+      const res = await fetch('http://localhost:8080/api/session/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, answer, type })
+      });
+      const data = await res.json();
+      document.getElementById('answerResult').textContent = JSON.stringify(data, null, 2);
+    }
+
+    // 3. End the session
+    async function endSession() {
+      const sessionId = document.getElementById('endSessionId').value;
+      document.getElementById('endResult').textContent = 'Loading...';
+      const res = await fetch('http://localhost:8080/api/session/end?sessionId=' + sessionId, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      document.getElementById('endResult').textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+  <!--
+    How to use:
+    1. Enter a topic and type, then click Start Session. Copy the sessionId for next steps.
+    2. Enter your answer and click Submit Answer to get the next question and feedback.
+    3. Click End Session to get a summary.
+    All results will show below each button.
+  -->
+</body>
+</html> 
