@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { useAuth } from './AuthContext';
+import { Card } from './ui/card';
+import { Button } from './ui/button';
+import Loader from './ui/Loader';
 
 const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -7,6 +12,8 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const navigate = useNavigate();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +33,21 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    if (profileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileMenuOpen]);
 
   const navLinks = [
     { name: 'Home', to: '/#' },
@@ -65,6 +87,8 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
       }
     }
   };
+
+  const { user, logout, logoutLoading } = useAuth();
 
   return (
     <>
@@ -111,33 +135,96 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
                 </span>
               )
             ))}
-            <div className="flex gap-2">
-              <span
-                className="px-5 py-2 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none cursor-pointer"
-                style={{boxShadow: '0 2px 8px #4fd1c533'}}
-                onClick={() => handleNav('/login')}
-              >
-                Login
-              </span>
-              <span
-                className="px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none cursor-pointer"
-                style={{boxShadow: '0 2px 16px #4fd1c555'}}
-                onClick={() => handleNav('/signup')}
-              >
-                Sign Up
-              </span>
-            </div>
+            {/* Auth/Profile section */}
+            {user ? (
+              <div className="flex items-center gap-3 relative" ref={profileMenuRef}>
+                <button
+                  type="button"
+                  className="focus:outline-none"
+                  onClick={() => setProfileMenuOpen((open) => !open)}
+                >
+                  <Avatar>
+                    <AvatarImage src={user.imageUrl || '/default-avatar.png'} alt="Profile" />
+                    <AvatarFallback>{user.name ? user.name[0] : '?'}</AvatarFallback>
+                  </Avatar>
+                </button>
+                {/* Dropdown menu */}
+                {profileMenuOpen && (
+                  <Card className="absolute right-0 top-12 min-w-[220px] z-50 p-0 bg-gradient-to-br from-[#e0f7fa] via-white to-[#f8feff] border-2 border-[#4fd1c5] shadow-2xl rounded-2xl animate-dropdownIn">
+                    <div className="flex flex-col items-center gap-2 py-5 px-6">
+                      <Avatar>
+                        <AvatarImage src={user.imageUrl || '/default-avatar.png'} alt="Profile" />
+                        <AvatarFallback>{user.name ? user.name[0] : '?'}</AvatarFallback>
+                      </Avatar>
+                      <div className="font-bold text-lg text-[#18404a] mt-2">{user.name}</div>
+                      <div className="text-gray-500 text-sm mb-2">{user.email}</div>
+                    </div>
+                    <div className="border-t border-[#4fd1c5]/30 mx-2" />
+                    <div className="flex flex-col items-center py-4 px-6">
+                      {logoutLoading ? (
+                        <div className="flex items-center justify-center w-full py-2">
+                          <div className="bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-center w-full">
+                            <Loader />
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="destructive"
+                          className="w-full font-semibold text-base py-2 rounded-xl bg-[#ff4d4f] hover:bg-[#ff7875] text-white transition"
+                          onClick={logout}
+                          disabled={logoutLoading}
+                        >
+                          Log out
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <span
+                  className="px-5 py-2 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none cursor-pointer"
+                  style={{boxShadow: '0 2px 8px #4fd1c533'}}
+                  onClick={() => handleNav('/login')}
+                >
+                  Login
+                </span>
+                <span
+                  className="px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none cursor-pointer"
+                  style={{boxShadow: '0 2px 16px #4fd1c555'}}
+                  onClick={() => handleNav('/signup')}
+                >
+                  Sign Up
+                </span>
+              </div>
+            )}
           </div>
-          {/* Hamburger for mobile */}
-          <button
-            className="md:hidden flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#4fd1c5]"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label="Open menu"
-          >
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {/* Mobile: Profile avatar or hamburger */}
+          <div className="md:hidden flex items-center ml-auto">
+            {user ? (
+              <button
+                className="focus:outline-none flex items-center justify-center"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Open profile menu"
+              >
+                <Avatar>
+                  <AvatarImage src={user.imageUrl || '/default-avatar.png'} alt="Profile" />
+                  <AvatarFallback>{user.name ? user.name[0] : '?'}</AvatarFallback>
+                </Avatar>
+              </button>
+            ) : (
+              <button
+                className="flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#4fd1c5]"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Open menu"
+              >
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
         {/* Mobile Dropdown Menu */}
         <style>{`
@@ -195,7 +282,7 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="nav-underline text-xl font-extrabold tracking-tight text-white w-full text-center py-3 rounded transition-all duration-200 hover:text-[#4fd1c5] focus:text-[#4fd1c5] mb-1"
-                    style={{letterSpacing: '0.01em'}}
+                    style={{letterSpacing: '0.01em'}} 
                     onClick={() => setMenuOpen(false)}
                   >
                     {link.name}
@@ -204,7 +291,7 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
                   <span
                     key={link.name}
                     className="nav-underline text-xl font-extrabold tracking-tight text-white w-full text-center py-3 rounded transition-all duration-200 hover:text-[#4fd1c5] focus:text-[#4fd1c5] mb-1 cursor-pointer"
-                    style={{letterSpacing: '0.01em'}}
+                    style={{letterSpacing: '0.01em'}} 
                     onClick={() => handleNav(link.to)}
                   >
                     {link.name}
@@ -213,23 +300,46 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
               ))}
               {/* Divider */}
               <div className="w-full border-t border-[#333] my-4" />
-              {/* Auth buttons with pulse effect */}
-              <span
-                className="btn-pulse w-full mb-1 px-6 py-3 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-black/60 hover:bg-[#1a1a1a] hover:text-[#7fe3e0] shadow-[0_2px_16px_#4fd1c555] transition-all duration-200 focus:outline-none text-center cursor-pointer"
-                onClick={() => handleNav('/login')}
-              >
-                Login
-              </span>
-              <span
-                className="btn-pulse w-full px-6 py-3 rounded-full font-bold text-lg shadow-[0_2px_24px_#4fd1c5aa] transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none text-center cursor-pointer"
-                onClick={() => handleNav('/signup')}
-              >
-                Sign Up
-              </span>
+              {/* Auth/Profile section for mobile */}
+              {user ? (
+                <div className="w-full mt-2 flex flex-col items-center">
+                  {!logoutLoading && (
+                    <Button
+                      variant="destructive"
+                      className="w-full font-semibold text-base py-2 rounded-xl bg-[#ff4d4f] hover:bg-[#ff7875] text-white transition"
+                      onClick={logout}
+                      disabled={logoutLoading}
+                    >
+                      Log out
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <span
+                    className="btn-pulse w-full mb-1 px-6 py-3 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-black/60 hover:bg-[#1a1a1a] hover:text-[#7fe3e0] shadow-[0_2px_16px_#4fd1c555] transition-all duration-200 focus:outline-none text-center cursor-pointer"
+                    onClick={() => handleNav('/login')}
+                  >
+                    Login
+                  </span>
+                  <span
+                    className="btn-pulse w-full px-6 py-3 rounded-full font-bold text-lg shadow-[0_2px_24px_#4fd1c5aa] transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none text-center cursor-pointer"
+                    onClick={() => handleNav('/signup')}
+                  >
+                    Sign Up
+                  </span>
+                </>
+              )}
             </div>
           </div>
         )}
       </nav>
+      {/* Loader overlay on logout */}
+      {logoutLoading && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#10151a]">
+          <Loader />
+        </div>
+      )}
     </>
   );
 };

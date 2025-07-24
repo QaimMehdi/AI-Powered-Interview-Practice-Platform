@@ -11,6 +11,8 @@ import InterviewPage from "./pages/InterviewPage";
 import React, { useEffect, useState, useRef } from "react";
 import Loader from "@/components/ui/Loader";
 import Contact from './pages/Contact';
+import LoginSuccess from "./pages/LoginSuccess";
+import { AuthProvider } from './components/AuthContext';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +63,7 @@ function AppWithLoader() {
         <Route path="/signup" element={<Signup />} /> {/* Signup route */}
         <Route path="/interview/:topic" element={<InterviewPage />} /> {/* Interview route */}
         <Route path="/contact" element={<Contact />} /> {/* Contact route */}
+        <Route path="/login-success" element={<LoginSuccess />} /> {/* Google OAuth2 JWT handler */}
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -73,9 +76,11 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AppWithLoader />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppWithLoader />
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -1,0 +1,44 @@
+# Server Configuration
+server:
+  port: 8080
+
+# Spring Configuration
+spring:
+  # --- DATABASE CONFIGURATION ---
+  # Loaded from Environment Variables
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:interview_platform_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:q1A2I3M4!!} # Default for local dev, override with ENV VAR
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # In prod, use a migration tool like Flyway or Liquibase
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  # --- OAUTH2 CLIENT CONFIGURATION (GOOGLE) ---
+  # Loaded from Environment Variables
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
+# --- CUSTOM APPLICATION PROPERTIES ---
+app:
+  # Frontend URL for redirect after successful login
+  oauth2:
+    authorizedRedirectUri: ${AUTHORIZED_REDIRECT_URI:http://localhost:3000/login-success}
+
+  # JWT Configuration - Loaded from Environment Variables
+  jwt:
+    secret: ${JWT_SECRET} # A long, random, base64-encoded string
+    expirationInMs: 86400000 # 24 hours 
