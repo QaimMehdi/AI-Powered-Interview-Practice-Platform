@@ -59,7 +59,7 @@
 
     // 2. Submit an answer
     async function answerQuestion() {
-      const sessionId = document.getElementById('sessionId').value;
+      const sessionId = Number(document.getElementById('sessionId').value);
       const answer = document.getElementById('answer').value;
       const type = document.getElementById('type2').value;
       document.getElementById('answerResult').textContent = 'Loading...';

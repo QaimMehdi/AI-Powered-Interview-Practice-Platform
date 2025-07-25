@@ -10,11 +10,11 @@ public class QuestionAnswer {
     @ManyToOne(fetch = FetchType.LAZY)
     private InterviewSession session;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "LONGTEXT")
     private String question;
-    @Column(length = 4000)
+    @Column(columnDefinition = "LONGTEXT")
     private String answer;
-    @Column(length = 4000)
+    @Column(columnDefinition = "LONGTEXT")
     private String feedback;
     private int orderIndex;
 
