@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom'; // Import Link for routing
 import { TopicSelection } from '@/components/interview/TopicSelection';
-import { InterviewInterface } from '@/components/interview/InterviewInterface';
-import { FeedbackDisplay } from '@/components/interview/FeedbackDisplay';
 import { InterviewSummary } from '@/components/interview/InterviewSummary';
 import { useInterview } from '@/hooks/useInterview';
 import { 
@@ -263,12 +261,9 @@ export { Footer };
 const Index = () => {
   const {
     state,
-    startInterview,
-    submitAnswer,
-    nextQuestion,
-    endInterview,
     resetInterview,
-    setRecording
+    setRecording,
+    setAvatarSpeaking
   } = useInterview();
 
   const navigate = useNavigate();
@@ -279,24 +274,18 @@ const Index = () => {
   const showHero = state.currentPhase === 'topic-selection';
   
   // Check if user is in an active interview
-  const isInInterview = state.currentPhase !== 'topic-selection';
+  const isInInterview = false; // Always false, interview is now in InterviewPage
 
   const handleLogoClick = () => {
-    if (state.currentPhase !== 'topic-selection') {
-      setShowLeaveDialog(true);
-    }
-    // If already on topic selection, do nothing
+    // No interview in Index, so just scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleRequestLeave = (path: string) => {
-    if (isInInterview) {
-      setShowLeaveDialog(true);
+    if (path === '#' || path === '/#') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      if (path === '#' || path === '/#') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        navigate(path);
-      }
+      navigate(path);
     }
   };
 
@@ -305,48 +294,26 @@ const Index = () => {
     resetInterview();
   };
 
+  // When a topic is selected, redirect to /interview/:topic
+  const handleTopicSelect = (topic: string) => {
+    navigate(`/interview/${topic}`);
+  };
+
   const renderCurrentPhase = () => {
-    switch (state.currentPhase) {
-      case 'topic-selection':
-        return <TopicSelection />;
-      case 'interview':
-        if (!state.currentSession) return null;
-        return (
-          <InterviewInterface
-            session={state.currentSession}
-            isRecording={state.isRecording}
-            isAvatarSpeaking={state.isAvatarSpeaking}
-            onSubmitAnswer={submitAnswer}
-            onEndInterview={endInterview}
-            onToggleRecording={setRecording}
-          />
-        );
-      case 'feedback':
-        if (!state.currentSession) return null;
-        const currentQuestion = state.currentSession.questions[state.currentSession.currentQuestionIndex - 1];
-        const currentAnswer = state.currentSession.answers[state.currentSession.answers.length - 1];
-        const currentFeedback = state.currentSession.feedback[state.currentSession.feedback.length - 1];
-        if (!currentQuestion || !currentAnswer || !currentFeedback) return null;
-        return (
-          <FeedbackDisplay
-            question={currentQuestion}
-            answer={currentAnswer}
-            feedback={currentFeedback}
-            onNextQuestion={nextQuestion}
-            isLastQuestion={state.currentSession.currentQuestionIndex >= state.currentSession.questions.length}
-          />
-        );
-      case 'summary':
-        if (!state.currentSession) return null;
-        return (
-          <InterviewSummary
-            session={state.currentSession}
-            onStartNewInterview={resetInterview}
-          />
-        );
-      default:
-        return <TopicSelection />;
+    // Only show topic selection or summary (if needed)
+    if (state.currentPhase === 'topic-selection') {
+      return <TopicSelection onSelect={handleTopicSelect} />;
     }
+    if (state.currentPhase === 'summary' && state.currentSession) {
+      return (
+        <InterviewSummary
+          session={state.currentSession}
+          onStartNewInterview={resetInterview}
+        />
+      );
+    }
+    // Default: show topic selection
+    return <TopicSelection onSelect={handleTopicSelect} />;
   };
 
   const [testimonialIdx, setTestimonialIdx] = useState(0);

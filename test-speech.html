@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Speech Recognition Test</h1>
+        <p>Test if your browser supports Web Speech API for speech-to-text functionality.</p>
+        
+        <div id="status"></div>
+        
+        <button id="startBtn" onclick="toggleRecognition()">
+            <span id="btnText">Start Recording</span>
+        </button>
+        
+        <textarea id="output" placeholder="Your speech will appear here..."></textarea>
+        
+        <div>
+            <button onclick="clearOutput()">Clear Text</button>
+            <button onclick="copyText()">Copy Text</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+
+        // Check browser support
+        function checkSupport() {
+            const statusDiv = document.getElementById('status');
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                statusDiv.innerHTML = '<div class="status error">❌ Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.</div>';
+                document.getElementById('startBtn').disabled = true;
+                return false;
+            }
+            
+            statusDiv.innerHTML = '<div class="status success">✅ Speech recognition is supported in this browser!</div>';
+            return true;
+        }
+
+        // Initialize speech recognition
+        function initRecognition() {
+            const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                updateButton();
+                updateStatus('Listening... Speak now!', 'info');
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                const output = document.getElementById('output');
+                output.value += (output.value ? ' ' : '') + transcript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                updateButton();
+                
+                let errorMessage = 'Speech recognition error.';
+                switch(event.error) {
+                    case 'not-allowed':
+                        errorMessage = 'Microphone access denied. Please allow microphone access.';
+                        break;
+                    case 'no-speech':
+                        errorMessage = 'No speech detected. Please try speaking again.';
+                        break;
+                    case 'network':
+                        errorMessage = 'Network error. Please check your connection.';
+                        break;
+                }
+                updateStatus(errorMessage, 'error');
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                updateButton();
+                updateStatus('Recording stopped.', 'info');
+            };
+        }
+
+        function toggleRecognition() {
+            if (!recognition) return;
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function updateButton() {
+            const btn = document.getElementById('startBtn');
+            const btnText = document.getElementById('btnText');
+            
+            if (isListening) {
+                btn.className = 'recording';
+                btnText.textContent = 'Stop Recording';
+            } else {
+                btn.className = '';
+                btnText.textContent = 'Start Recording';
+            }
+        }
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').value = '';
+        }
+
+        function copyText() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            updateStatus('Text copied to clipboard!', 'success');
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            if (checkSupport()) {
+                initRecognition();
+            }
+        };
+    </script>
+</body>
+</html> 

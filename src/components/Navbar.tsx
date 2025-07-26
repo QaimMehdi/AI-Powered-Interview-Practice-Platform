@@ -101,18 +101,18 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
         `}
         style={{ fontFamily: 'Poppins, Montserrat, sans-serif', transition: 'all 0.5s cubic-bezier(.4,2,.3,1)', willChange: 'transform, opacity' }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-2">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer select-none group relative" onClick={onLogoClick} style={{height: '48px'}}>
+          <div className="flex items-center gap-2 cursor-pointer select-none group relative" onClick={onLogoClick} style={{height: '36px'}}>
             <img 
               src="/logo-white.png" 
               alt="Prepza Logo" 
-              className="h-[98px] w-[98px] object-contain transition-transform duration-300 group-hover:scale-110"
-              style={{ filter: 'drop-shadow(0 0 0 #4fd1c5)', marginTop: '-16px', marginBottom: '-16px' }}
+              className="h-[72px] w-[72px] object-contain transition-transform duration-300 group-hover:scale-110"
+              style={{ filter: 'drop-shadow(0 0 0 #4fd1c5)', marginTop: '-12px', marginBottom: '-12px' }}
             />
           </div>
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8 ml-auto">
+          <div className="hidden md:flex items-center gap-6 ml-auto">
             {navLinks.map((link) => (
               link.external ? (
                 <a
@@ -120,14 +120,14 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
+                  className="text-base font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5]"
                   style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}>
                   {link.name}
                 </a>
               ) : (
                 <span
                   key={link.name}
-                  className="text-lg font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5] cursor-pointer"
+                  className="text-base font-semibold text-white/90 px-2 py-1 rounded transition-all duration-200 hover:text-[#4fd1c5] hover:underline underline-offset-8 focus:text-[#4fd1c5] cursor-pointer"
                   style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}
                   onClick={() => handleNav(link.to)}
                 >
@@ -184,14 +184,14 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
             ) : (
               <div className="flex gap-2">
                 <span
-                  className="px-5 py-2 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none cursor-pointer"
+                  className="px-4 py-1.5 rounded-full font-bold text-base border-2 border-[#4fd1c5] text-[#4fd1c5] bg-transparent hover:bg-[#1a1a1a] hover:text-[#7fe3e0] transition-all duration-200 focus:outline-none cursor-pointer"
                   style={{boxShadow: '0 2px 8px #4fd1c533'}}
                   onClick={() => handleNav('/login')}
                 >
                   Login
                 </span>
                 <span
-                  className="px-6 py-2 rounded-full font-bold text-lg shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none cursor-pointer"
+                  className="px-5 py-1.5 rounded-full font-bold text-base shadow-lg transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none cursor-pointer"
                   style={{boxShadow: '0 2px 16px #4fd1c555'}}
                   onClick={() => handleNav('/signup')}
                 >
@@ -317,13 +317,13 @@ const Navbar = ({ onLogoClick, isInInterview, onRequestLeave }) => {
               ) : (
                 <>
                   <span
-                    className="btn-pulse w-full mb-1 px-6 py-3 rounded-full font-bold text-lg border-2 border-[#4fd1c5] text-[#4fd1c5] bg-black/60 hover:bg-[#1a1a1a] hover:text-[#7fe3e0] shadow-[0_2px_16px_#4fd1c555] transition-all duration-200 focus:outline-none text-center cursor-pointer"
+                    className="btn-pulse w-full mb-1 px-6 py-2.5 rounded-full font-bold text-base border-2 border-[#4fd1c5] text-[#4fd1c5] bg-black/60 hover:bg-[#1a1a1a] hover:text-[#7fe3e0] shadow-[0_2px_16px_#4fd1c555] transition-all duration-200 focus:outline-none text-center cursor-pointer"
                     onClick={() => handleNav('/login')}
                   >
                     Login
                   </span>
                   <span
-                    className="btn-pulse w-full px-6 py-3 rounded-full font-bold text-lg shadow-[0_2px_24px_#4fd1c5aa] transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none text-center cursor-pointer"
+                    className="btn-pulse w-full px-6 py-2.5 rounded-full font-bold text-base shadow-[0_2px_24px_#4fd1c5aa] transition-all duration-200 bg-[#4fd1c5] text-[#18404a] hover:bg-[#5ff5e0] focus:bg-[#5ff5e0] focus:outline-none text-center cursor-pointer"
                     onClick={() => handleNav('/signup')}
                   >
                     Sign Up

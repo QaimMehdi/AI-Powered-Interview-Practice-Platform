@@ -37,12 +37,12 @@ public class SessionController {
     }
 
     @PostMapping("/end")
-    public ResponseEntity<?> endSession(@RequestParam Long sessionId) {
-        if (sessionId == null) {
+    public ResponseEntity<?> endSession(@RequestBody EndSessionRequest req) {
+        if (req.getSessionId() == null) {
             return ResponseEntity.badRequest().body("Session ID is required");
         }
         try {
-            SessionResponse resp = sessionService.endSession(sessionId);
+            SessionResponse resp = sessionService.endSession(req.getSessionId());
             return ResponseEntity.ok(resp);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

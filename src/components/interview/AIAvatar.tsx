@@ -66,15 +66,15 @@ export const AIAvatar = ({ isSpeaking, isListening, message, className = '' }: A
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-[12px] ${className}`}>
       {/* Avatar Container */}
-      <Card className="p-6 text-center bg-avatar-background border-avatar-border">
+      <Card className="p-[16px] text-center bg-avatar-background border-avatar-border">
         <div className="relative inline-block">
           {/* Main Avatar Circle */}
           <div 
             className={`
-              w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl
-              border-4 transition-all duration-300
+              w-[64px] h-[64px] rounded-full mx-auto mb-[8px] flex items-center justify-center text-[20px]
+              border-[2px] transition-all duration-300
               ${isSpeaking ? 'border-primary animate-pulse scale-110' : 'border-avatar-border'}
               ${isListening ? 'border-info animate-pulse' : ''}
               bg-gradient-to-br from-primary/20 to-accent/20
@@ -85,29 +85,29 @@ export const AIAvatar = ({ isSpeaking, isListening, message, className = '' }: A
 
           {/* Pulse Animation for Speaking */}
           {isSpeaking && (
-            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-4 border-primary/30 animate-ping" />
+            <div className="absolute inset-0 w-[64px] h-[64px] mx-auto rounded-full border-[2px] border-primary/30 animate-ping" />
           )}
 
           {/* Microphone Indicator */}
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center">
+          <div className="absolute -bottom-[4px] -right-[4px] w-[24px] h-[24px] rounded-full bg-background border border-border flex items-center justify-center">
             {isListening ? (
-              <Mic className="w-4 h-4 text-info animate-pulse" />
+              <Mic className="w-[12px] h-[12px] text-info animate-pulse" />
             ) : (
-              <MicOff className="w-4 h-4 text-muted-foreground" />
+              <MicOff className="w-[12px] h-[12px] text-muted-foreground" />
             )}
           </div>
         </div>
 
         {/* Status Badge */}
-        <Badge className={getStatusColor()}>
+        <Badge className={`${getStatusColor()} text-white text-[10px] ml-[2px] px-[8px] py-[2px]`}>
           {getStatusText()}
         </Badge>
 
         {/* AI Name */}
-        <h3 className="text-lg font-semibold mt-2 text-foreground">
+        <h3 className="text-[14px] font-semibold mt-[4px] text-foreground">
           Alex - AI Interviewer
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground">
           Professional Interview Assistant
         </p>
       </Card>

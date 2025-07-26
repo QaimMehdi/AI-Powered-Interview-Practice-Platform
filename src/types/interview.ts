@@ -50,6 +50,9 @@ export interface InterviewSession {
   feedback: Feedback[];
   currentQuestionIndex: number;
   overallScore?: number;
+  summary?: string;
+  summaryStrengths?: string[];
+  summaryImprovements?: string[];
 }
 
 export interface InterviewState {

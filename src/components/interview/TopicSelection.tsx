@@ -3,8 +3,19 @@ import { User, Code } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const TopicSelection = () => {
+interface TopicSelectionProps {
+  onSelect?: (topic: string) => void;
+}
+
+export const TopicSelection: React.FC<TopicSelectionProps> = ({ onSelect }) => {
   const navigate = useNavigate();
+  const handleSelect = (topic: string) => {
+    if (onSelect) {
+      onSelect(topic);
+    } else {
+      navigate(`/interview/${topic}`);
+    }
+  };
   return (
     <section className="w-full" id="topics">
       <div className="relative z-20 flex flex-col items-center mb-12 mt-8">
@@ -17,7 +28,7 @@ export const TopicSelection = () => {
         {/* Technical Interview Card */}
         <Card
           className="group transition-all duration-300 shadow-xl border-2 border-primary/20 bg-white rounded-2xl p-10 flex flex-col items-center cursor-pointer hover:scale-105 hover:shadow-2xl hover:border-primary/40 hover:ring-2 hover:ring-primary/20"
-          onClick={() => navigate('/interview/technical')}
+          onClick={() => handleSelect('technical')}
         >
           <div className="rounded-full bg-primary/10 p-6 flex items-center justify-center mb-6 shadow-md">
             <Code className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-300" />
@@ -28,7 +39,7 @@ export const TopicSelection = () => {
         {/* HR Interview Card */}
         <Card
           className="group transition-all duration-300 shadow-xl border-2 border-accent/30 bg-white rounded-2xl p-10 flex flex-col items-center cursor-pointer hover:scale-105 hover:shadow-2xl hover:border-accent/60 hover:ring-2 hover:ring-accent/30"
-          onClick={() => navigate('/interview/hr')}
+          onClick={() => handleSelect('hr')}
         >
           <div className="rounded-full bg-accent/10 p-6 flex items-center justify-center mb-6 shadow-md">
             <User className="w-12 h-12 text-accent group-hover:scale-110 transition-transform duration-300" />

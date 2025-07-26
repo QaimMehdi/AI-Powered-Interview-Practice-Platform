@@ -14,13 +14,13 @@ export const useInterview = () => {
   const [loading, setLoading] = useState(false);
 
   // Start interview by calling backend
-  const startInterview = useCallback(async (topic: string) => {
+  const startInterview = useCallback(async (topic: string, type?: string) => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic })
+        body: JSON.stringify({ topic, type })
       });
       if (!res.ok) throw new Error('Failed to start interview');
       const data = await res.json();
@@ -68,7 +68,6 @@ export const useInterview = () => {
       });
       if (!res.ok) throw new Error('Failed to submit answer');
       const data = await res.json();
-      // Update session with new question and answer
       setState(prev => {
         if (!prev.currentSession) return prev;
         const newAnswer = {
@@ -78,43 +77,59 @@ export const useInterview = () => {
           timestamp: new Date(),
           duration: 60
         };
-        const newQuestion = data.nextQuestion
-          ? {
-              id: (prev.currentSession.questions.length + 1).toString(),
-              text: data.nextQuestion,
-              topic: prev.currentSession.topic,
-              difficulty: 'Medium' as const,
-              expectedDuration: 5
-            }
-          : null;
-        const updatedSession = {
-          ...prev.currentSession,
-          answers: [...prev.currentSession.answers, newAnswer],
-          questions: newQuestion
-            ? [...prev.currentSession.questions, newQuestion]
-            : prev.currentSession.questions,
-          currentQuestionIndex: newQuestion
-            ? prev.currentSession.currentQuestionIndex + 1
-            : prev.currentSession.currentQuestionIndex
-        };
-        // If no more questions, go to summary
-        if (!newQuestion) {
-          updatedSession.status = 'completed';
-          updatedSession.endTime = new Date();
+        
+        // Map backend feedback data to frontend format
+        const feedbackArray = Array.isArray(data.feedback) ? data.feedback : [];
+        const mappedFeedback = feedbackArray.map((feedbackItem: any, index: number) => ({
+          id: `feedback-${Date.now()}-${index}`,
+          answerId: newAnswer.id,
+          score: feedbackItem.score || 0,
+          strengths: Array.isArray(feedbackItem.strengths) ? feedbackItem.strengths : [],
+          improvements: Array.isArray(feedbackItem.improvements) ? feedbackItem.improvements : [],
+          detailedFeedback: feedbackItem.feedback || '',
+          overallRating: feedbackItem.score >= 8 ? 'excellent' : 
+                        feedbackItem.score >= 6 ? 'good' : 
+                        feedbackItem.score >= 4 ? 'fair' : 'poor'
+        }));
+        
+        if (!data.currentQuestion) {
+          const updatedSession = {
+            ...prev.currentSession,
+            answers: [...prev.currentSession.answers, newAnswer],
+            status: 'completed' as const,
+            endTime: new Date(),
+            feedback: [...(prev.currentSession.feedback || []), ...mappedFeedback]
+          };
           return {
             ...prev,
             currentSession: updatedSession,
             currentPhase: 'summary'
           };
         }
+        const newQuestion = {
+          id: (prev.currentSession.questions.length + 1).toString(),
+          text: data.currentQuestion,
+          topic: prev.currentSession.topic,
+          difficulty: 'Medium' as const,
+          expectedDuration: 5
+        };
+        const updatedSession = {
+          ...prev.currentSession,
+          answers: [...prev.currentSession.answers, newAnswer],
+          questions: [...prev.currentSession.questions, newQuestion],
+          feedback: [...(prev.currentSession.feedback || []), ...mappedFeedback],
+          currentQuestionIndex: prev.currentSession.currentQuestionIndex + 1
+        };
         return {
           ...prev,
           currentSession: updatedSession,
           currentPhase: 'interview'
         };
       });
+      return data; // <-- return backend response
     } catch (err) {
       toast({ title: 'Error', description: 'Could not submit answer.' });
+      return null;
     } finally {
       setLoading(false);
     }
@@ -133,20 +148,43 @@ export const useInterview = () => {
       });
       if (!res.ok) throw new Error('Failed to end interview');
       const data = await res.json();
+      
+      // Map backend response to frontend session structure
       setState(prev => {
         if (!prev.currentSession) return prev;
+        
+        // Extract feedback data from backend response
+        const feedbackArray = Array.isArray(data.feedback) ? data.feedback : [];
+        
         const updatedSession = {
           ...prev.currentSession,
           status: 'completed' as const,
-          endTime: new Date(),
-          overallScore: data.overallScore || 0
+          endTime: new Date(data.endedAt || Date.now()),
+          overallScore: data.overallScore || 0,
+          summary: data.summary || '',
+          summaryStrengths: data.summaryStrengths || [],
+          summaryImprovements: data.summaryImprovements || [],
+          // Map the feedback array from backend to frontend format
+          feedback: feedbackArray.map((feedbackItem: any, index: number) => ({
+            id: `feedback-${index}`,
+            answerId: `answer-${index}`,
+            score: feedbackItem.score || 0,
+            strengths: Array.isArray(feedbackItem.strengths) ? feedbackItem.strengths : [],
+            improvements: Array.isArray(feedbackItem.improvements) ? feedbackItem.improvements : [],
+            detailedFeedback: feedbackItem.feedback || '',
+            overallRating: feedbackItem.score >= 8 ? 'excellent' : 
+                          feedbackItem.score >= 6 ? 'good' : 
+                          feedbackItem.score >= 4 ? 'fair' : 'poor'
+          }))
         };
+        
         return {
           ...prev,
           currentSession: updatedSession,
           currentPhase: 'summary'
         };
       });
+      
       toast({
         title: 'Interview Completed',
         description: 'Thank you for completing the interview. Review your feedback below.'

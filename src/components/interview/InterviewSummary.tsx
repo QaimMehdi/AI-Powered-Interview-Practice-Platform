@@ -21,12 +21,39 @@ interface InterviewSummaryProps {
 }
 
 export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSummaryProps) => {
-  const totalQuestions = session.questions.length;
-  const answeredQuestions = session.answers.length;
-  const averageScore = session.feedback.length > 0 
-    ? session.feedback.reduce((sum, f) => sum + f.score, 0) / session.feedback.length 
-    : 0;
+  if (!session) {
+    return <div className="min-h-screen flex items-center justify-center text-lg text-muted-foreground">No interview session data available.</div>;
+  }
 
+  // Only include feedback for answered questions (skip greetings/prompts with no answer)
+  const validFeedback = Array.isArray(session.feedback)
+    ? session.feedback.filter((f, i) => f && typeof f.score === 'number' && f.score > 0)
+    : [];
+
+  const totalQuestions = session.questions?.length || 0;
+  const answeredQuestions = session.answers?.filter(a => a && a.text && a.text.trim() !== '').length || 0;
+  
+  // Calculate average score from valid feedback only
+  const averageScore = validFeedback.length > 0
+    ? validFeedback.reduce((sum, f) => sum + f.score, 0) / validFeedback.length
+    : 0;
+  
+  // Use backend overallScore if available, otherwise use calculated average
+  const overallScore = typeof session.overallScore === 'number' && session.overallScore > 0 
+    ? session.overallScore 
+    : averageScore;
+
+  // Fallback: aggregate strengths/improvements from feedback if summary fields are empty
+  const fallbackStrengths = validFeedback.flatMap(f => Array.isArray(f.strengths) ? f.strengths : []);
+  const fallbackImprovements = validFeedback.flatMap(f => Array.isArray(f.improvements) ? f.improvements : []);
+  const strengths = Array.isArray(session.summaryStrengths) && session.summaryStrengths.length > 0
+    ? session.summaryStrengths
+    : [...new Set(fallbackStrengths)].slice(0, 5);
+  const improvements = Array.isArray(session.summaryImprovements) && session.summaryImprovements.length > 0
+    ? session.summaryImprovements
+    : [...new Set(fallbackImprovements)].slice(0, 5);
+
+  // Calculate duration
   const duration = session.endTime && session.startTime
     ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000 / 60)
     : 0;
@@ -38,19 +65,9 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
     return { level: 'Needs Improvement', color: 'text-destructive', bg: 'bg-destructive' };
   };
 
-  const performance = getPerformanceLevel(averageScore);
-
-  // Aggregate strengths and improvements
-  const allStrengths = session.feedback.flatMap(f => f.strengths);
-  const allImprovements = session.feedback.flatMap(f => f.improvements);
-  
-  const topStrengths = [...new Set(allStrengths)].slice(0, 5);
-  const topImprovements = [...new Set(allImprovements)].slice(0, 5);
-
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        
         {/* Header */}
         <Card className="text-center">
           <CardHeader>
@@ -70,12 +87,12 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6 text-center">
-              <div className={`text-3xl font-bold ${performance.color} mb-2`}>
-                {averageScore.toFixed(1)}/10
+              <div className={`text-3xl font-bold ${getPerformanceLevel(overallScore).color} mb-2`}>
+                {overallScore.toFixed(1)}/10
               </div>
               <p className="text-sm text-muted-foreground">Overall Score</p>
-              <Badge className={`mt-2 ${performance.bg} text-white`}>
-                {performance.level}
+              <Badge className={`mt-2 ${getPerformanceLevel(overallScore).bg} text-white`}>
+                {getPerformanceLevel(overallScore).level}
               </Badge>
             </CardContent>
           </Card>
@@ -121,8 +138,8 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {session.feedback.map((feedback, index) => {
-                const question = session.questions[index];
+              {validFeedback.map((feedback, index) => {
+                const question = session.questions[index + (session.questions.length - validFeedback.length)];
                 return (
                   <div key={feedback.id} className="flex items-center gap-4">
                     <div className="flex-1">
@@ -145,7 +162,6 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
 
         {/* Strengths and Improvements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
           {/* Strengths */}
           <Card>
             <CardHeader>
@@ -156,12 +172,12 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {topStrengths.map((strength, index) => (
+                {strengths.length > 0 ? strengths.map((strength, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-success mt-2 flex-shrink-0" />
                     <span className="text-foreground">{strength}</span>
                   </li>
-                ))}
+                )) : <li className="text-muted-foreground">No strengths identified.</li>}
               </ul>
             </CardContent>
           </Card>
@@ -176,16 +192,15 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {topImprovements.map((improvement, index) => (
+                {improvements.length > 0 ? improvements.map((improvement, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-warning mt-2 flex-shrink-0" />
                     <span className="text-foreground">{improvement}</span>
                   </li>
-                ))}
+                )) : <li className="text-muted-foreground">No improvement areas identified.</li>}
               </ul>
             </CardContent>
           </Card>
-
         </div>
 
         {/* Recommendations */}
@@ -223,7 +238,7 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
           <Button 
             onClick={onStartNewInterview}
             size="lg"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white"
           >
             Start New Interview
             <ArrowRight className="w-4 h-4" />
@@ -232,6 +247,7 @@ export const InterviewSummary = ({ session, onStartNewInterview }: InterviewSumm
             variant="outline" 
             size="lg"
             onClick={() => window.print()}
+            className="text-white bg-primary border-primary hover:bg-primary/90"
           >
             Export Results
           </Button>
