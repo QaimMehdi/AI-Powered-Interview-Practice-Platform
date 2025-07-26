@@ -72,8 +72,8 @@ A comprehensive interview preparation platform that uses AI to conduct realistic
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/QaimMehdi/AI-Powered-Interview-Practice-Platform.git
-   cd AI-Powered-Interview-Practice-Platform
+   git clone https://github.com/QaimMehdi/Prepza.git
+   cd Prepza
    ```
 
 2. **Backend Setup**
